@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>YouTube Playlist Voting</title>
+    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Search Section -->
+        <div>
+            <input type="text" id="searchInput" placeholder="Search YouTube...">
+            <button onclick="searchYouTube()">Search</button>
+            <div id="searchResults"></div>
+        </div>
+
+        <!-- Voting Section -->
+        <div id="tracksList"></div>
+
+        <!-- Playlist Player -->
+        <iframe id="playlistPlayer" width="560" height="315" frameborder="0"></iframe>
+    </div>
+
+    <script>
+        let contract;
+        const CONTRACT_ADDRESS = "YOUR_CONTRACT_ADDRESS";
+        const CONTRACT_ABI = [/* Paste Contract ABI Here */];
+        
+        // Initialize Ethers
+        async function initEthers() {
+            if (window.ethereum) {
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                const signer = provider.getSigner();
+                contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+                loadTracks();
+            }
+        }
+
+        // Search YouTube (Simplified)
+        async function searchYouTube() {
+            const searchTerm = document.getElementById('searchInput').value;
+            // In real implementation: Call YouTube Data API
+            const mockResults = [
+                { title: "Sample Track 1", videoId: "abc123" },
+                { title: "Sample Track 2", videoId: "def456" }
+            ];
+            
+            displayResults(mockResults);
+        }
+
+        function displayResults(results) {
+            const container = document.getElementById('searchResults');
+            container.innerHTML = results.map(track => `
+                <div>
+                    ${track.title}
+                    <button onclick="addTrack('${track.title}', '${track.videoId}')">Add to Voting</button>
+                </div>
+            `).join('');
+        }
+
+        async function addTrack(title, videoId) {
+            await contract.addTrack(title, videoId);
+        }
+
+        async function vote(trackId) {
+            await contract.vote(trackId);
+        }
+
+        async function loadTracks() {
+            const tracks = await contract.getAllTracks();
+            const container = document.getElementById('tracksList');
+            container.innerHTML = tracks.map(track => `
+                <div>
+                    ${track.title} - Votes: ${track.voteCount}
+                    <button onclick="vote(${track.id})">Vote</button>
+                </div>
+            `).join('');
+        }
+
+        // Initialize
+        initEthers();
+    </script>
+</body>
+</html>
